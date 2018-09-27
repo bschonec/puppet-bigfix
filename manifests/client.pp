@@ -31,6 +31,12 @@
 # [*version*]
 #   Desired version of the bigfix agent
 #
+# [*config*]
+#   Various BigFix-specific configuration items in INI style format.
+#
+# [*inifile_defaults*]
+#   Defaults to pass to the puppetlabs-ini 'create_ini_settings' method.
+#
 # === Variables
 #
 # [*bigfix::params::agent_url*]
@@ -61,10 +67,10 @@ class bigfix::client(
   $nocheckcertificate = true,        # Tells wget::fetch to enforce certificate check or not.
   $wget_timeout       = 0,           # Number of seconds to wait before giving up on wget.
   $version            = '9.1',
+  $config             = {},          # Various BigFix-specific configuration items in INI style format.
+  $inifile_defaults   = $::bigfix::params::inifile_defaults,
 
-){
-
-  include bigfix::params
+) inherits bigfix::params {
 
   if ($license_file_url == undef) and ($license_file == undef) {fail('The bigfix module requires $license_file or $license_file_url to be defined.') }
   if ($license_file_url) and ($license_file) {fail('Either $license_file or $license_file_url may be defined, but not both.') }
@@ -82,6 +88,11 @@ class bigfix::client(
 
   validate_bool($service_enable)
   validate_bool($nocheckcertificate)
+  validate_hash($config)
+  #validate_hash($inifile_defaults)
+
+  # Ensure any INI settings (via puppetlabs-inifile)
+  create_ini_settings($config, $inifile_defaults)
 
   $bes_dir = '/etc/opt/BESClient'
 
@@ -127,4 +138,5 @@ class bigfix::client(
   package{'BESAgent':
     ensure   => $package_ensure,
   }
+
 }
