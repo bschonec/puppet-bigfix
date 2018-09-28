@@ -91,9 +91,6 @@ class bigfix::client(
   validate_hash($config)
   #validate_hash($inifile_defaults)
 
-  # Ensure any INI settings (via puppetlabs-inifile)
-  create_ini_settings($config, $inifile_defaults)
-
   $bes_dir = '/etc/opt/BESClient'
 
   file{$bes_dir:
@@ -129,14 +126,17 @@ class bigfix::client(
     }
   }
 
+  package{'BESAgent':
+    ensure   => $package_ensure,
+  }
+
+  # Ensure any INI settings (via puppetlabs-inifile)
+  create_ini_settings($config, $inifile_defaults)
+
   service{'besclient':
     ensure  => $service_ensure,
     enable  => $service_enable,
     require => Package['BESAgent'],
-  }
-
-  package{'BESAgent':
-    ensure   => $package_ensure,
   }
 
 }
